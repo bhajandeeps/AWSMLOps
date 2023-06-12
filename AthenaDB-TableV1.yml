@@ -44,6 +44,63 @@
       MinLength: 5
       MaxLength: 100
       Default: 'transformed/scoring/baselineReport/'  
+    Scoremonitorbridgepath:
+      Description: >-
+          Enter value of S3 path for Glue Destination
+      Type: 'String'
+      MinLength: 5
+      MaxLength: 100
+      Default: 'transformed/monitoring/reporting/scoremonitortriage/'
+    InferReportPath:
+      Description: >-
+          Enter value of S3 path for Glue Destination
+      Type: 'String'
+      MinLength: 5
+      MaxLength: 100
+      Default: 'transformed/scoring/outbound/'
+    ScoringDataTable:
+      Description: >-
+          Enter value of data drift athena table name
+      Type: 'String'
+      MinLength: 5
+      MaxLength: 100
+      Default: 'scoringtable'
+    ScoreMonitorBridgeTable:
+      Description: >-
+          Enter value of data drift athena table name
+      Type: 'String'
+      MinLength: 5
+      MaxLength: 100
+      Default: 'ScoreMonitorBridgeTable'        
+    PredictReportPath:
+      Description: >-
+          Enter value of data drift athena table name
+      Type: 'String'
+      MinLength: 5
+      MaxLength: 100
+      Default: 'PredictReportPath'        
+    PredictionDataTbl:
+      Description: >-
+          Enter value of data drift athena table name
+      Type: 'String'
+      MinLength: 5
+      MaxLength: 100
+      Default: 'PredictionDataTbl'    
+    TrainRefPath:
+      Description: >-
+          Enter value of data drift athena table name
+      Type: 'String'
+      MinLength: 5
+      MaxLength: 100
+      Default: 'TrainRefPath'        
+    trainrefdatatbl:
+      Description: >-
+          Enter value of data drift athena table name
+      Type: 'String'
+      MinLength: 5
+      MaxLength: 100
+      Default: 'trainrefdata'        
+      
   Resources:
     ModelMonitor:
       Type: AWS::Glue::Database
@@ -79,6 +136,10 @@
                 Type: string
               - Name: end_time
                 Type: string
+              - Name: inp_jsonline
+                Type: string
+              - Name: outjsonpath
+                Type: string
               - Name: infertype
                 Type: string  
               - Name: monitorjobname
@@ -87,11 +148,6 @@
                 Type: string
               - Name: baselinecons
                 Type: string
-              - Name: inp_jsonline
-                Type: string
-              - Name: outjsonpath
-                Type: string
-                 
             Compressed: false
             InputFormat: org.apache.hadoop.mapred.TextInputFormat
             Location: !Join 
@@ -145,4 +201,190 @@
               Parameters:
                 serialization.format: ','
                 field.delim:  ','
-              SerializationLibrary: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe    
+              SerializationLibrary: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+    ScoringDataTbl:
+      Type: AWS::Glue::Table
+      Properties:
+        DatabaseName: !Ref ModelMonitor
+        CatalogId: !Ref AWS::AccountId
+        TableInput:
+          Name: !Ref ScoringDataTable
+          TableType: EXTERNAL_TABLE
+          Parameters:
+            classification: csv
+            typeOfData: file
+            skip.header.line.count: '1'
+          StorageDescriptor:
+            BucketColumns: []
+            Columns:
+              - Name: Id
+                Type: string
+              - Name: age
+                Type: string
+              - Name: sex
+                Type: string  
+              - Name: bmi
+                Type: string
+              - Name: children
+                Type: string  
+              - Name: smoker
+                Type: string
+              - Name: region
+                Type: string
+              - Name: id1
+                Type: string
+            Compressed: false
+            InputFormat: org.apache.hadoop.mapred.TextInputFormat
+            Location: !Join 
+              - ''
+              - - 's3://'
+                - !Ref DataS3Bucket
+                - /
+                - !Ref InferReportPath
+            OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+            SerdeInfo:
+              Parameters:
+                serialization.format: ','
+                field.delim:  ','
+              SerializationLibrary: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+    ScoreMonitorBridge:
+      Type: AWS::Glue::Table
+      Properties:
+        DatabaseName: !Ref ModelMonitor
+        CatalogId: !Ref AWS::AccountId
+        TableInput:
+          Name: !Ref ScoreMonitorBridgeTable
+          TableType: EXTERNAL_TABLE
+          Parameters:
+            classification: csv
+            typeOfData: file
+            skip.header.line.count: '1'
+          StorageDescriptor:
+            BucketColumns: []
+            Columns:
+              - Name: inferenceid
+                Type: string
+              - Name: monitorjobname
+                Type: string
+              - Name: modelname
+                Type: string  
+              - Name: mdmonitorjobname
+                Type: string  
+            Compressed: false
+            InputFormat: org.apache.hadoop.mapred.TextInputFormat
+            Location: !Join 
+              - ''
+              - - 's3://'
+                - !Ref DataS3Bucket
+                - /
+                - !Ref Scoremonitorbridgepath
+            OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+            SerdeInfo:
+              Parameters:
+                serialization.format: ','
+                field.delim:  ','
+              SerializationLibrary: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe                  
+    PredictionDataTable:
+      Type: AWS::Glue::Table
+      Properties:
+        DatabaseName: !Ref ModelMonitor
+        CatalogId: !Ref AWS::AccountId
+        TableInput:
+          Name: !Ref PredictionDataTbl
+          TableType: EXTERNAL_TABLE
+          Parameters:
+            classification: csv
+            typeOfData: file
+            skip.header.line.count: '1'
+          StorageDescriptor:
+            BucketColumns: []
+            Columns:
+              - Name: runtime
+                Type: string
+              - Name: modelname
+                Type: string
+              - Name: infertype
+                Type: string  
+              - Name: InferenceId
+                Type: string
+              - Name: c1
+                Type: string
+              - Name: c2
+                Type: string
+              - Name: c3
+                Type: string
+              - Name: c4
+                Type: string
+              - Name: c5
+                Type: string
+              - Name: c6
+                Type: string
+              - Name: c7
+                Type: string
+              - Name: c8
+                Type: string
+              - Name: c9
+                Type: string
+              - Name: c10
+                Type: string
+              - Name: c11
+                Type: string
+              - Name: prediction
+                Type: string          
+            Compressed: false
+            InputFormat: org.apache.hadoop.mapred.TextInputFormat
+            Location: !Join 
+              - ''
+              - - 's3://'
+                - !Ref DataS3Bucket
+                - /
+                - !Ref PredictReportPath
+            OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+            SerdeInfo:
+              Parameters:
+                serialization.format: ','
+                field.delim:  ','
+              SerializationLibrary: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+    trainrefdata:
+      Type: AWS::Glue::Table
+      Properties:
+        DatabaseName: !Ref ModelMonitor
+        CatalogId: !Ref AWS::AccountId
+        TableInput:
+          Name: !Ref trainrefdatatbl
+          TableType: EXTERNAL_TABLE
+          Parameters:
+            classification: csv
+            typeOfData: file
+            skip.header.line.count: '1'
+          StorageDescriptor:
+            BucketColumns: []
+            Columns:
+              - Name: age
+                Type: string
+              - Name: sex
+                Type: string  
+              - Name: bmi
+                Type: string
+              - Name: children
+                Type: string  
+              - Name: smoker
+                Type: string
+              - Name: region
+                Type: string
+              - Name: premium
+                Type: string
+            Compressed: false
+            InputFormat: org.apache.hadoop.mapred.TextInputFormat
+            Location: !Join 
+              - ''
+              - - 's3://'
+                - !Ref DataS3Bucket
+                - /
+                - !Ref TrainRefPath
+            OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+            SerdeInfo:
+              Parameters:
+                serialization.format: ','
+                field.delim:  ','
+              SerializationLibrary: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe              

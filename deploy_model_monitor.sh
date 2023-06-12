@@ -4,12 +4,21 @@ STACK_NAME="mlops-demo-gluetables"
 
 # Reading config values
 Environment=${ENVIRONMENT}
-DataS3Bucket="ajay-vishwakarma-useast1"
+DataS3Bucket="mlops-insurance"
 DriftReportPath=`cat monitor_config.json | jq -r '.DriftReportPath'`
 DataDriftTable=`cat monitor_config.json | jq -r '.DataDriftTable'`
 BaselineDataTable=`cat monitor_config.json | jq -r '.BaselineDataTable'`
 BslineReportPath=`cat monitor_config.json | jq -r '.BslineReportPath'`
-CFNBucket="vw-cred-datalake-"${ENVIRONMENT}"-s3-mlops-cfn"
+ScoringDataTable=`cat monitor_config.json | jq -r '.ScoringDataTable'`
+InferReportPath=`cat monitor_config.json | jq -r '.InferReportPath'`
+ScoreMonitorBridgeTable=`cat monitor_config.json | jq -r '.ScoreMonitorBridgeTable'`
+Scoremonitorbridgepath=`cat monitor_config.json | jq -r '.Scoremonitorbridgepath'`
+PredictReportPath=`cat monitor_config.json | jq -r '.PredictReportPath'`
+PredictionDataTbl=`cat monitor_config.json | jq -r '.PredictionDataTbl'`
+TrainRefPath=`cat monitor_config.json | jq -r '.TrainRefPath'`
+trainrefdatatbl=`cat monitor_config.json | jq -r '.trainrefdatatbl'`
+
+CFNBucket="mlops-insurance"
 
 # Copying CFN template on to s3
 #aws s3 cp AthenaDB-TableV1.yml s3://${CFNBucket}/cloudformation/ || true 
@@ -21,6 +30,10 @@ output=$(aws cloudformation deploy --stack-name $STACK_NAME \
 --parameter-overrides DataS3Bucket=$DataS3Bucket \
 DriftReportPath=$DriftReportPath DataDriftTable=$DataDriftTable \
 BslineReportPath=$BslineReportPath BaselineDataTable=$BaselineDataTable \
+Scoremonitorbridgepath=$Scoremonitorbridgepath ScoreMonitorBridgeTable=$ScoreMonitorBridgeTable \
+InferReportPath=$InferReportPath ScoringDataTable=$ScoringDataTable \
+PredictReportPath=$PredictReportPath PredictionDataTbl=$PredictionDataTbl \
+TrainRefPath=$TrainRefPath trainrefdatatbl=$trainrefdatatbl \
 Environment=$Environment )
 
 sleep 5 #
