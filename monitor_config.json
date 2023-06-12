@@ -1,0 +1,6 @@
+{
+	"DriftReportPath":"violation_csv/",
+	"DataDriftTable":"demodatadrifttbl",
+	"BslineReportPath":"baselinecsv/",
+	"BaselineDataTable":"demobaselineref"
+	}
